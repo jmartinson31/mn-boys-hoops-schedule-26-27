@@ -58,17 +58,24 @@ button,.date input,.search input{font:inherit;color:var(--text)}
 <p class="count" id="count"></p>
 <div id="list"><div class="empty">Loading schedule…</div></div>
 <div id="events"></div>
-<p class="foot">Schedules pulled Nov 18, 2026 from <a href="https://www.gobound.com/mn/mshsl/boysbasketball/2026-27/scores" target="_blank" rel="noopener">Bound</a> and cross-checked against the <a href="https://varsity.startribune.com/sports/boys-basketball/scores-schedules" target="_blank" rel="noopener">Strib Varsity basketball hub</a>. Games on only one site are labeled, and where the two sites list different tip times, Bound’s time is shown with the Strib Varsity time noted. Team classes, sections, conferences and stream links come from the 2026–27 Stream Link + Roster Database; hover a class chip for the team’s section and conference. Stream links are the home team’s feed unless noted. Conference and class filters show a game when either team matches. Out-of-state and non-MSHSL opponents have no class. Times and dates can change, so confirm with the host school.</p>
+<p class="foot">Schedules pulled Nov 18, 2026 from <a href="https://www.gobound.com/mn/mshsl/boysbasketball/2026-27/scores" target="_blank" rel="noopener">Bound</a> and cross-checked against the <a href="https://varsity.startribune.com/sports/boys-basketball/scores-schedules" target="_blank" rel="noopener">Strib Varsity basketball hub</a>. Games on only one site are labeled, and where the two sites list different tip times, Bound’s time is shown with the Strib Varsity time noted. Team classes, sections, conferences and stream links come from the 2026–27 Stream Link + Roster Database; hover a class chip for the team’s section and conference. Stream links follow the host site: the school whose gym the game is in, which for tournaments, scrimmages and showcase sessions may be neither team. Games at college or arena venues are marked as neutral sites. Conference and class filters show a game when either team matches. Out-of-state and non-MSHSL opponents have no class. Times and dates can change, so confirm with the host school.</p>
 </main>
 <script>
-var T=[],V=[],G=[],E=[],days=[],filt=0,q="",confOnly=false,cfName="",strmOnly=false;
+var T=[],V=[],VH=[],G=[],E=[],days=[],filt=0,q="",confOnly=false,cfName="",strmOnly=false;
 var CN=["","A","AA","AAA","AAAA"];
 function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
 function lab(s){var p=s.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric",year:"numeric"})}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 var cur=iso(new Date());
-function team(i,home){var t=T[i];var n=esc(t[0]);if(home)n="<b>"+n+"</b>";var tip=[t[2]?"Section "+t[2]:"",t[3]].filter(Boolean).join(" · ");return n+(t[1]?'<span class="cl k'+t[1]+'" title="'+esc(tip)+'">'+CN[t[1]]+'</span>':'')}
-function strm(g){var h=T[g[3]],a=T[g[2]],s=h[5]?h:(a[5]?a:null);if(!s)return "";var who=s===h?"":" ("+esc(a[0])+" feed)";return '<div class="meta"><a href="'+esc(s[5])+'" target="_blank" rel="noopener">▶ '+esc(s[4])+who+'</a>'+(s[6]==="Yes"?' · subscription':s[6]==="No"?' · free':'')+'</div>'}
+function team(i,home){var t=T[i];var n=esc(t[0]);var tip=[t[2]?"Section "+t[2]:"",t[3]].filter(Boolean).join(" · ");return n+(t[1]?'<span class="cl k'+t[1]+'" title="'+esc(tip)+'">'+CN[t[1]]+'</span>':'')}
+function feed(s,who){return '<div class="meta"><a href="'+esc(s[5])+'" target="_blank" rel="noopener">▶ '+esc(s[4])+who+'</a>'+(s[6]==="Yes"?' · subscription':s[6]==="No"?' · free':'')+'</div>'}
+function strm(g){var vh=VH[g[4]];
+  if(vh>=0){var s=T[vh];if(vh===g[3])return s[5]?feed(s,""):"";
+    if(!s[5])return '<div class="meta">At '+esc(s[0])+' · no stream listed</div>';
+    return feed(s,vh===g[2]?" ("+esc(s[0])+" feed)":" ("+esc(s[0])+" – host site)")}
+  if(vh===-2)return '<div class="meta">Neutral site · no school stream listed</div>';
+  var h=T[g[3]],a=T[g[2]];if(h[5])return feed(h,"");if(a[5])return feed(a," ("+esc(a[0])+" feed)");return ""}
+function evStrm(e){var vh=VH[e[4]];if(vh>=0&&T[vh][5])return feed(T[vh]," ("+esc(T[vh][0])+" – host site)");return ""}
 function inConf(i){return !cfName||T[i][3]===cfName}
 function inClass(i){return !filt||T[i][1]===filt}
 function matchQ(names,v){if(!q)return true;var s=(names.join(" ")+" "+v).toLowerCase();return s.indexOf(q)>=0}
@@ -97,7 +104,7 @@ function render(){
   ee.innerHTML=evs.length?'<h2 class="th">Tournaments, scrimmages &amp; multi-team events</h2>'+evs.map(function(e){
     return '<div class="card ev"><div class="top"><span class="time">'+esc(e[1]||"Time TBA")+'</span><span class="tags"><span class="tag">Event</span></span></div>'+
       '<div class="teams"><b>'+esc(e[2])+'</b></div>'+(e[3].length?'<div class="meta">'+e[3].map(function(i){return team(i)}).join(", ")+'</div>':'')+
-      (V[e[4]]?'<div class="meta">'+esc(V[e[4]])+'</div>':'')+(e[5]?'<div class="note">'+esc(e[5])+'</div>':'')+'</div>'}).join(""):"";
+      (V[e[4]]?'<div class="meta">'+esc(V[e[4]])+'</div>':'')+evStrm(e)+(e[5]?'<div class="note">'+esc(e[5])+'</div>':'')+'</div>'}).join(""):"";
 }
 function shift(n){var p=cur.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]+n);cur=iso(d);render()}
 document.getElementById("prev").onclick=function(){shift(-1)};
@@ -110,7 +117,7 @@ document.getElementById("strm").onchange=function(e){strmOnly=e.target.checked;r
 document.getElementById("cf").onchange=function(e){cfName=e.target.value;render()};
 Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(b){b.onclick=function(){filt=+b.getAttribute("data-f");Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(x){x.classList.toggle("on",x===b)});render()}});
 fetch("games.json").then(function(r){return r.json()}).then(function(d){
-  T=d.T;V=d.V;G=d.G;E=d.E;
+  T=d.T;V=d.V;VH=d.VH||[];G=d.G;E=d.E;
   var cs={};T.forEach(function(t){if(t[3]&&t[3]!=="Independent")cs[t[3]]=1});var sel=document.getElementById("cf");
   Object.keys(cs).sort().forEach(function(c){var o=document.createElement("option");o.value=c;o.textContent=c;sel.appendChild(o)});
   var s={};G.forEach(function(g){s[g[0]]=1});E.forEach(function(e){s[e[0]]=1});days=Object.keys(s).sort();
