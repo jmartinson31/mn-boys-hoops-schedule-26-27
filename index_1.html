@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Minnesota Boys High School Basketball – Games by Day</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f7fb;--card:#fff;--text:#14213d;--muted:#5b6475;--line:#dde1ea;--accent:#1f3864;--chip:#eaeef7;
+--c1:#0b7a4b;--c2:#1d5fbf;--c3:#8a3fb8;--c4:#b4501a;--c0:#6b7280;--warn:#9a6700}
+@media (prefers-color-scheme:dark){:root{--bg:#10141c;--card:#181e29;--text:#eef1f7;--muted:#9aa4b8;--line:#2b3445;--accent:#8fb0ff;--chip:#232c3d;
+--c1:#4cd08f;--c2:#79a8ff;--c3:#c99cf0;--c4:#ff9a5c;--c0:#9aa4b8;--warn:#e3b341}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+main{max-width:720px;margin:0 auto;padding:16px 14px 40px}
+h1{font-size:1.15rem;margin:0 0 2px}
+.sub{color:var(--muted);font-size:.85rem;margin:0 0 12px}
+.bar{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+button,.date input,.search input{font:inherit;color:var(--text)}
+.bar button,.seg button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;cursor:pointer}
+.date{flex:1;text-align:center;font-weight:600;position:relative}
+.date label{cursor:pointer;display:block;padding:6px 0}
+.date input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.seg{display:flex;gap:6px;margin-bottom:10px}
+.seg button{flex:1;padding:7px 4px;font-size:.88rem}
+.seg button.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.tools{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.search{flex:1}
+.search input{width:100%;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px}
+.tog{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);white-space:nowrap}
+.count{color:var(--muted);font-size:.82rem;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:9px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:3px}
+.time{font-weight:700;font-size:1.02rem}
+.tags{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.tag{font-size:.7rem;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--chip);color:var(--muted)}
+.teams{font-size:1rem;margin:2px 0 3px}
+.teams b{font-weight:700}
+.cl{font-size:.66rem;font-weight:800;border-radius:5px;padding:1px 4px;margin-left:4px;vertical-align:2px;background:var(--chip)}
+.k1{color:var(--c1)}.k2{color:var(--c2)}.k3{color:var(--c3)}.k4{color:var(--c4)}.k0{color:var(--c0)}
+.meta{color:var(--muted);font-size:.84rem}
+.note{color:var(--muted);font-size:.8rem;font-style:italic}
+.warn{color:var(--warn);font-size:.8rem}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--muted)}
+.empty button{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;cursor:pointer;margin-top:10px}
+.th{font-size:1.02rem;margin:24px 0 6px}
+.ev .teams{font-size:.92rem}
+.foot{color:var(--muted);font-size:.75rem;margin-top:18px}
+.foot a{color:var(--accent)}
+.meta a{color:var(--accent);text-decoration:none;font-weight:600}
+.tools select{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:8px 8px;font:inherit;font-size:.88rem;max-width:42%}
+</style></head><body><main>
+<h1>Minnesota Boys High School Basketball</h1>
+<p class="sub">Varsity games by day, 2026–27 · all times Central</p>
+<div class="bar"><button id="prev" aria-label="Previous day">‹</button><div class="date"><label id="dlabel" for="dpick"></label><input type="date" id="dpick" aria-label="Pick a date"></div><button id="next" aria-label="Next day">›</button><button id="today">Today</button></div>
+<div class="seg" id="seg"><button data-f="0" class="on">All</button><button data-f="1">Class A</button><button data-f="2">AA</button><button data-f="3">AAA</button><button data-f="4">AAAA</button></div>
+<div class="tools"><div class="search"><input id="q" type="search" placeholder="Filter by team or site" autocomplete="off"></div><select id="cf" aria-label="Conference"><option value="">All conferences</option></select></div>
+<div class="tools" style="margin-top:-4px"><label class="tog"><input type="checkbox" id="conf"> Conference games only</label><label class="tog"><input type="checkbox" id="strm"> Has a stream</label></div>
+<p class="count" id="count"></p>
+<div id="list"><div class="empty">Loading schedule…</div></div>
+<div id="events"></div>
+<p class="foot">Schedules pulled Nov 18, 2026 from <a href="https://www.gobound.com/mn/mshsl/boysbasketball/2026-27/scores" target="_blank" rel="noopener">Bound</a> and cross-checked against the <a href="https://varsity.startribune.com/sports/boys-basketball/scores-schedules" target="_blank" rel="noopener">Strib Varsity basketball hub</a>. Games on only one site are labeled, and where the two sites list different tip times, Bound’s time is shown with the Strib Varsity time noted. Team classes, sections, conferences and stream links come from the 2026–27 Stream Link + Roster Database; hover a class chip for the team’s section and conference. Stream links are the home team’s feed unless noted. Conference and class filters show a game when either team matches. Out-of-state and non-MSHSL opponents have no class. Times and dates can change, so confirm with the host school.</p>
+</main>
+<script>
+var T=[],V=[],G=[],E=[],days=[],filt=0,q="",confOnly=false,cfName="",strmOnly=false;
+var CN=["","A","AA","AAA","AAAA"];
+function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+function lab(s){var p=s.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric",year:"numeric"})}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var cur=iso(new Date());
+function team(i,home){var t=T[i];var n=esc(t[0]);var tip=[t[2]?"Section "+t[2]:"",t[3]].filter(Boolean).join(" · ");return n+(t[1]?'<span class="cl k'+t[1]+'" title="'+esc(tip)+'">'+CN[t[1]]+'</span>':'')}
+function strm(g){var h=T[g[3]],a=T[g[2]],s=h[5]?h:(a[5]?a:null);if(!s)return "";var who=s===h?"":" ("+esc(a[0])+" feed)";return '<div class="meta"><a href="'+esc(s[5])+'" target="_blank" rel="noopener">▶ '+esc(s[4])+who+'</a>'+(s[6]==="Yes"?' · subscription':s[6]==="No"?' · free':'')+'</div>'}
+function inConf(i){return !cfName||T[i][3]===cfName}
+function inClass(i){return !filt||T[i][1]===filt}
+function matchQ(names,v){if(!q)return true;var s=(names.join(" ")+" "+v).toLowerCase();return s.indexOf(q)>=0}
+function gameOK(g){if(confOnly&&!g[5])return false;if(strmOnly&&!(T[g[3]][5]||T[g[2]][5]))return false;if(cfName&&!(inConf(g[2])||inConf(g[3])))return false;if(filt&&!(inClass(g[2])||inClass(g[3])))return false;return matchQ([T[g[2]][0],T[g[3]][0]],V[g[4]])}
+function evOK(e){if(confOnly||strmOnly)return false;if(cfName&&!e[3].some(inConf))return false;if(filt&&!e[3].some(inClass))return false;return matchQ(e[3].map(function(i){return T[i][0]}).concat([e[2]]),V[e[4]])}
+function render(){
+  document.getElementById("dlabel").textContent=lab(cur)+(cur===iso(new Date())?" (today)":"");
+  document.getElementById("dpick").value=cur;
+  var list=G.filter(function(g){return g[0]===cur&&gameOK(g)});
+  var evs=E.filter(function(e){return e[0]===cur&&evOK(e)});
+  var el=document.getElementById("list"),ee=document.getElementById("events");
+  document.getElementById("count").textContent=list.length?list.length+" game"+(list.length>1?"s":"")+(evs.length?" · "+evs.length+" multi-team event"+(evs.length>1?"s":""):""):"";
+  if(!list.length&&!evs.length){
+    var nxt=days.filter(function(d){return d>cur&&(G.some(function(g){return g[0]===d&&gameOK(g)})||E.some(function(e){return e[0]===d&&evOK(e)}))})[0];
+    el.innerHTML='<div class="empty">No games on this day'+(filt||q||confOnly||cfName||strmOnly?' for this filter':'')+'.'+(nxt?'<br><button id="jump">Next game day: '+esc(lab(nxt))+'</button>':'')+'</div>';
+    ee.innerHTML="";var j=document.getElementById("jump");if(j)j.onclick=function(){cur=nxt;render()};return;}
+  el.innerHTML=list.length?list.map(function(g){
+    var tags=[];if(g[5]===1)tags.push('<span class="tag">'+esc(T[g[3]][3])+'</span>');else if(g[5]===2)tags.push('<span class="tag">Conference</span>');
+    if(g[6]===1)tags.push('<span class="tag">Strib only</span>');else if(g[6]===2)tags.push('<span class="tag">Bound only</span>');
+    var x='<div class="card"><div class="top"><span class="time">'+esc(g[1]||"Time TBA")+'</span><span class="tags">'+tags.join("")+'</span></div>'+
+      '<div class="teams">'+team(g[2])+' at '+team(g[3],1)+'</div>'+
+      (V[g[4]]?'<div class="meta">'+esc(V[g[4]])+'</div>':'')+strm(g);
+    if(g[7])x+='<div class="warn">Strib Varsity lists '+esc(g[7])+'</div>';
+    if(g[8])x+='<div class="note">'+esc(g[8])+'</div>';
+    return x+'</div>'}).join(""):'<div class="empty">No head-to-head games listed for this filter — see events below.</div>';
+  ee.innerHTML=evs.length?'<h2 class="th">Tournaments, scrimmages &amp; multi-team events</h2>'+evs.map(function(e){
+    return '<div class="card ev"><div class="top"><span class="time">'+esc(e[1]||"Time TBA")+'</span><span class="tags"><span class="tag">Event</span></span></div>'+
+      '<div class="teams"><b>'+esc(e[2])+'</b></div>'+(e[3].length?'<div class="meta">'+e[3].map(function(i){return team(i)}).join(", ")+'</div>':'')+
+      (V[e[4]]?'<div class="meta">'+esc(V[e[4]])+'</div>':'')+(e[5]?'<div class="note">'+esc(e[5])+'</div>':'')+'</div>'}).join(""):"";
+}
+function shift(n){var p=cur.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]+n);cur=iso(d);render()}
+document.getElementById("prev").onclick=function(){shift(-1)};
+document.getElementById("next").onclick=function(){shift(1)};
+document.getElementById("today").onclick=function(){cur=iso(new Date());render()};
+document.getElementById("dpick").onchange=function(e){if(e.target.value){cur=e.target.value;render()}};
+document.getElementById("q").oninput=function(e){q=e.target.value.trim().toLowerCase();render()};
+document.getElementById("conf").onchange=function(e){confOnly=e.target.checked;render()};
+document.getElementById("strm").onchange=function(e){strmOnly=e.target.checked;render()};
+document.getElementById("cf").onchange=function(e){cfName=e.target.value;render()};
+Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(b){b.onclick=function(){filt=+b.getAttribute("data-f");Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(x){x.classList.toggle("on",x===b)});render()}});
+fetch("games.json").then(function(r){return r.json()}).then(function(d){
+  T=d.T;V=d.V;G=d.G;E=d.E;
+  var cs={};T.forEach(function(t){if(t[3]&&t[3]!=="Independent")cs[t[3]]=1});var sel=document.getElementById("cf");
+  Object.keys(cs).sort().forEach(function(c){var o=document.createElement("option");o.value=c;o.textContent=c;sel.appendChild(o)});
+  var s={};G.forEach(function(g){s[g[0]]=1});E.forEach(function(e){s[e[0]]=1});days=Object.keys(s).sort();
+  if(!s[cur]){var n=days.filter(function(d){return d>cur})[0];if(n)cur=n;}
+  render();
+}).catch(function(){document.getElementById("list").innerHTML='<div class="empty">Couldn’t load the schedule. Try reloading the page.</div>'});
+</script></body></html>
