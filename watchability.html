@@ -91,7 +91,8 @@ function label(s){var p=s.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);var n=d
   var W=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],M=["January","February","March","April","May","June","July","August","September","October","November","December"];
   return W[d.getDay()]+", "+M[d.getMonth()]+" "+n+suf}
 function gid(g,i){return g[0]+"|"+i}
-function dayGames(){var out=[];G.forEach(function(g,i){if(g[0]===day)out.push({id:gid(g,i),g:g})});return out}
+function isScrim(g){var n=g[8]||"";return /scrimmage|jamboree/i.test(n)&&!/half ?time/i.test(n)}
+function dayGames(){var out=[];G.forEach(function(g,i){if(g[0]===day&&!isScrim(g))out.push({id:gid(g,i),g:g})});return out}
 function chip(i){var t=T[i];return t[1]?'<span class="cl k'+t[1]+'">'+CN[t[1]]+'</span>':''}
 function cardHTML(o,inCol){var g=o.g;return '<div class="card'+(selId===o.id?' sel':'')+'" draggable="true" data-id="'+o.id+'"><div class="t"><div class="n">'+esc(T[g[2]][0])+(inCol?'':chip(g[2]))+'</div><div class="at">at</div><div class="n">'+esc(T[g[3]][0])+(inCol?'':chip(g[3]))+'</div></div>'+(inCol?'<button class="x" title="Remove" data-rm="'+o.id+'">×</button>':'')+'</div>'}
 function load(){try{picks=JSON.parse(ls("rjwi:"+day)||"{}")}catch(e){picks={}}if(!picks.cols)picks.cols=[[],[],[],[]]}
