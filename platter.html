@@ -80,16 +80,14 @@ input[type=file]{display:none}
   <h2 id="trayh">Games</h2>
   <div class="tools"><input id="q" type="search" placeholder="Filter by team or conference"><select id="cls"><option value="0">All classes</option><option value="1">Class A</option><option value="2">AA</option><option value="3">AAA</option><option value="4">AAAA</option></select></div>
   <div id="pool"></div>
-  <p class="hint">Scrimmages are left out. Your picks and titles clear when you close this tab. Your photos stay saved in this browser only and aren’t uploaded anywhere.</p>
+  <p class="hint">Scrimmages are left out. Your picks, titles and photos are saved in this browser only, and photos aren’t uploaded anywhere.</p>
 </div>
 <input type="file" id="file" accept="image/*">
 </div>
 <script>
-try{Object.keys(localStorage).forEach(function(k){if(k.indexOf("pdc:")===0&&k.indexOf("pdc:img:")!==0)localStorage.removeItem(k)})}catch(e){}
-function lsp(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var T=[],G=[],CN=["","A","AA","AAA","AAAA"],day="",q="",cls=0,P={list:[],cats:{}},PFX="pdc:";
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
-function ls(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
 function label(s){var p=s.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);var n=d.getDate(),suf=(n%10===1&&n!==11)?"st":(n%10===2&&n!==12)?"nd":(n%10===3&&n!==13)?"rd":"th";
   var W=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],M=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -126,7 +124,7 @@ plates.addEventListener("drop",function(e){if(!dragId)return;e.preventDefault();
   var i=t?L.indexOf(t.dataset.id):-1;if(i<0)L.push(dragId);else L.splice(i,0,dragId);P.list=L;dragId=null;save();render()});
 // photos
 var curSlot=null,fileIn=document.getElementById("file");
-function showSlot(k){var el=document.querySelector('[data-slot="'+k+'"]'),src=lsp(PFX+"img:"+k);el.innerHTML=src?'<img src="'+src+'" alt="">':'<span class="ph">'+(k==="logo"?"Add logo":"Add photo")+'</span>'}
+function showSlot(k){var el=document.querySelector('[data-slot="'+k+'"]'),src=ls(PFX+"img:"+k);el.innerHTML=src?'<img src="'+src+'" alt="">':'<span class="ph">'+(k==="logo"?"Add logo":"Add photo")+'</span>'}
 ["logo","hero"].forEach(showSlot);
 document.querySelectorAll(".slot").forEach(function(s){s.addEventListener("click",function(){curSlot=s.dataset.slot;fileIn.value="";fileIn.click()});
   s.addEventListener("dragover",function(e){e.preventDefault()});
@@ -134,7 +132,7 @@ document.querySelectorAll(".slot").forEach(function(s){s.addEventListener("click
 fileIn.addEventListener("change",function(){if(fileIn.files[0])readImg(fileIn.files[0])});
 function readImg(f){var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var m=600,s=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement("canvas");
   c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);var url=c.toDataURL("image/png");
-  lsp(PFX+"img:"+curSlot,url);var el=document.querySelector('[data-slot="'+curSlot+'"]');el.innerHTML='<img src="'+url+'" alt="">'};img.src=r.result};r.readAsDataURL(f)}
+  ls(PFX+"img:"+curSlot,url);var el=document.querySelector('[data-slot="'+curSlot+'"]');el.innerHTML='<img src="'+url+'" alt="">'};img.src=r.result};r.readAsDataURL(f)}
 // columns
 var colSel=document.getElementById("cols");colSel.value=ls(PFX+"cols")||"2";plates.style.setProperty("--cols",colSel.value);
 colSel.onchange=function(){ls(PFX+"cols",colSel.value);plates.style.setProperty("--cols",colSel.value)};
