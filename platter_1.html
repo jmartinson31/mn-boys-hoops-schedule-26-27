@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Platter de Czar</title>
+<script src="html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#1b1d22;color:#111;font:15px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1400px;margin:0 auto;padding:16px}
+.nav{color:#9aa4b8;font-size:.85rem;margin-bottom:8px}.nav a{color:#f2c230;text-decoration:none;font-weight:600;margin-right:14px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;color:#eef1f7}
+.controls input,.controls select,.controls button{font:inherit;border:1px solid #3a3f4b;background:#262a33;color:#eef1f7;border-radius:8px;padding:7px 10px}
+.controls button{cursor:pointer}.controls button.pri{background:#f2c230;color:#111;border-color:#f2c230;font-weight:700}
+.controls .sp{flex:1}
+.msg{color:#9aa4b8;font-size:.85rem}
+/* ---------- board (exported) ---------- */
+#board{background:#000;padding:22px;border-radius:6px}
+.top{display:flex;align-items:center;gap:20px;margin-bottom:18px}
+.slot{position:relative;cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;flex:none}
+.slot img{width:100%;height:100%;object-fit:cover}
+.slot .ph{color:#bbb;font-weight:700;font-size:.8rem;text-align:center;padding:6px}
+.logo{width:120px;height:120px;border-radius:50%;background:#2a2a2a}
+.hero{width:150px;height:150px;border-radius:12px;background:#2a2a2a}
+.hero img{object-fit:contain}
+.ttl{flex:1;text-align:center;color:#fff}
+.ttl h1{margin:0;font-size:2.6rem;font-weight:900;letter-spacing:-.5px;color:#f2c230}
+.ttl .d{font-size:1.4rem;font-weight:700;margin-top:4px}
+#plates{display:grid;grid-template-columns:repeat(var(--cols,2),1fr);gap:14px;min-height:120px;border-radius:10px}
+#plates.over{outline:2px dashed #f2c230}
+.plate{background:#fff;border-radius:12px;overflow:hidden;cursor:grab;user-select:none;border:3px solid transparent}
+.plate .cat{background:#f2c230;color:#111;font-weight:900;text-transform:uppercase;letter-spacing:.5px;font-size:1.05rem;padding:8px 14px;outline:none;min-height:1.2em;cursor:text;user-select:text}
+.plate .cat:empty:before{content:attr(data-ph);color:rgba(0,0,0,.45)}
+.plate .m{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.plate .t{flex:1;min-width:0}
+.plate .n{font-weight:800;font-size:1.25rem;color:#111}
+.plate .at{color:#777;font-size:.85rem;font-weight:600;margin:2px 0}
+.plate .x{border:0;background:none;color:#aaa;font-size:1.3rem;cursor:pointer}
+.plate.dragging{opacity:.4}.plate.drop{border-color:#2f6fe0}
+.empty-pl{grid-column:1/-1;color:#777;text-align:center;padding:40px 10px;border:2px dashed #333;border-radius:12px}
+.exporting .x,.exporting .empty-pl{display:none}
+.exporting .slot .ph{display:none}
+.exporting .plate .cat:empty:before{content:""}
+/* ---------- tray ---------- */
+.tray{margin-top:16px;background:#262a33;border-radius:10px;padding:12px;color:#eef1f7}
+.tray h2{font-size:1rem;margin:0 0 8px}
+.tray .tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.tray .tools input,.tray .tools select{font:inherit;border:1px solid #3a3f4b;background:#1b1d22;color:#eef1f7;border-radius:8px;padding:6px 10px}
+#pool{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px}
+.card{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;color:#111;border-radius:8px;cursor:pointer;user-select:none}
+.card .n{font-weight:700}.card .at{color:#777;font-size:.78rem}
+.card .add{margin-left:auto;font-weight:800;color:#0b7a4b;font-size:1.2rem}
+.cl{font-size:.62rem;font-weight:800;border-radius:4px;padding:1px 4px;margin-left:4px;vertical-align:2px;background:#eef0f4}
+.k1{color:#0b7a4b}.k2{color:#1d5fbf}.k3{color:#8a3fb8}.k4{color:#b4501a}
+.hint{color:#9aa4b8;font-size:.82rem;margin:6px 0 0}
+input[type=file]{display:none}
+@media (max-width:800px){.ttl h1{font-size:1.6rem}.ttl .d{font-size:1rem}.logo,.hero{width:70px;height:70px}#plates{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+<div class="nav"><a href="index.html">← Schedule</a><a href="watchability.html">RJ Watchability Index</a></div>
+<div class="controls">
+  <label>Date <input type="date" id="day" min="2026-12-01" max="2027-03-31"></label>
+  <button id="prev">‹ Prev day</button><button id="next">Next day ›</button>
+  <label>Columns <select id="cols"><option>1</option><option selected>2</option><option>3</option></select></label>
+  <span class="sp"></span>
+  <button id="clear">Clear platter</button>
+  <button id="copy">Copy image</button>
+  <button id="dl" class="pri">Download PNG</button>
+</div>
+<p class="msg" id="msg">Click a game below to add it to the platter, then click the yellow bar above it to type a title or category. Drag games on the platter to reorder. Click the logo circle or the photo square to add your own images.</p>
+
+<div id="board">
+  <div class="top">
+    <div class="slot logo" data-slot="logo"><span class="ph">Add logo</span></div>
+    <div class="ttl"><h1>Platter de Czar</h1><div class="d" id="dlabel"></div></div>
+    <div class="slot hero" data-slot="hero"><span class="ph">Add photo</span></div>
+  </div>
+  <div id="plates"></div>
+</div>
+
+<div class="tray">
+  <h2 id="trayh">Games</h2>
+  <div class="tools"><input id="q" type="search" placeholder="Filter by team or conference"><select id="cls"><option value="0">All classes</option><option value="1">Class A</option><option value="2">AA</option><option value="3">AAA</option><option value="4">AAAA</option></select></div>
+  <div id="pool"></div>
+  <p class="hint">Scrimmages are left out. Your picks and titles clear when you close this tab. Your photos stay saved in this browser only and aren’t uploaded anywhere.</p>
+</div>
+<input type="file" id="file" accept="image/*">
+</div>
+<script>
+try{Object.keys(localStorage).forEach(function(k){if(k.indexOf("pdc:")===0&&k.indexOf("pdc:img:")!==0)localStorage.removeItem(k)})}catch(e){}
+function lsp(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var T=[],G=[],CN=["","A","AA","AAA","AAAA"],day="",q="",cls=0,P={list:[],cats:{}},PFX="pdc:";
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function ls(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}}
+function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+function label(s){var p=s.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);var n=d.getDate(),suf=(n%10===1&&n!==11)?"st":(n%10===2&&n!==12)?"nd":(n%10===3&&n!==13)?"rd":"th";
+  var W=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],M=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return W[d.getDay()]+", "+M[d.getMonth()]+" "+n+suf}
+function isScrim(g){var n=g[8]||"";return /scrimmage|jamboree/i.test(n)&&!/half ?time/i.test(n)}
+function dayGames(){var out=[];G.forEach(function(g,i){if(g[0]===day&&!isScrim(g))out.push({id:g[0]+"|"+i,g:g})});return out}
+function chip(i){var t=T[i];return t[1]?'<span class="cl k'+t[1]+'">'+CN[t[1]]+'</span>':''}
+function load(){try{P=JSON.parse(ls(PFX+day)||"{}")}catch(e){P={}}P.list=P.list||[];P.cats=P.cats||{}}
+function save(){ls(PFX+day,JSON.stringify(P))}
+function render(){
+  document.getElementById("dlabel").textContent=label(day);document.getElementById("day").value=day;
+  var all=dayGames(),by={};all.forEach(function(o){by[o.id]=o});
+  P.list=P.list.filter(function(id){return by[id]});
+  var pl=document.getElementById("plates");
+  pl.innerHTML=P.list.length?P.list.map(function(id){var g=by[id].g;return '<div class="plate" draggable="true" data-id="'+id+'"><div class="cat" contenteditable="true" spellcheck="false" data-ph="Click to add title / category" data-cat="'+id+'">'+esc(P.cats[id]||"")+'</div><div class="m"><div class="t"><div class="n">'+esc(T[g[2]][0])+'</div><div class="at">at</div><div class="n">'+esc(T[g[3]][0])+'</div></div><button class="x" title="Remove" data-rm="'+id+'">×</button></div></div>'}).join(""):'<div class="empty-pl">Click games below to add them to the platter</div>';
+  var pool=all.filter(function(o){if(P.list.indexOf(o.id)>=0)return false;var a=T[o.g[2]],h=T[o.g[3]];
+    if(cls&&a[1]!==cls&&h[1]!==cls)return false;if(q){var s=(a[0]+" "+h[0]+" "+a[3]+" "+h[3]).toLowerCase();if(s.indexOf(q)<0)return false}return true});
+  document.getElementById("pool").innerHTML=pool.map(function(o){var g=o.g;return '<div class="card" data-add="'+o.id+'"><div><div class="n">'+esc(T[g[2]][0])+chip(g[2])+'</div><div class="at">at</div><div class="n">'+esc(T[g[3]][0])+chip(g[3])+'</div></div><span class="add">+</span></div>'}).join("")||'<p class="hint">'+(all.length?"No more games match.":"No games on this day.")+'</p>';
+  document.getElementById("trayh").textContent="Games on "+label(day)+" ("+(all.length-P.list.length)+" not on the platter)";
+}
+document.addEventListener("click",function(e){
+  var rm=e.target.closest("[data-rm]");if(rm){P.list=P.list.filter(function(x){return x!==rm.dataset.rm});save();render();return}
+  var add=e.target.closest("[data-add]");if(add){P.list.push(add.dataset.add);save();render();
+    var c=document.querySelector('[data-cat="'+add.dataset.add+'"]');if(c&&window.innerWidth>800)c.focus()}
+});
+document.addEventListener("input",function(e){var c=e.target.closest("[data-cat]");if(c){P.cats[c.dataset.cat]=c.textContent;save()}});
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target.closest("[data-cat]")){e.preventDefault();e.target.blur()}});
+// reorder plates by drag
+var dragId=null,plates=document.getElementById("plates");
+plates.addEventListener("dragstart",function(e){var p=e.target.closest(".plate");if(!p||e.target.closest(".cat"))return;dragId=p.dataset.id;p.classList.add("dragging");try{e.dataTransfer.setData("text/plain",dragId)}catch(x){}});
+plates.addEventListener("dragend",function(){dragId=null;document.querySelectorAll(".dragging,.drop").forEach(function(x){x.classList.remove("dragging","drop")})});
+plates.addEventListener("dragover",function(e){if(!dragId)return;e.preventDefault();document.querySelectorAll(".drop").forEach(function(x){x.classList.remove("drop")});var t=e.target.closest(".plate");if(t&&t.dataset.id!==dragId)t.classList.add("drop")});
+plates.addEventListener("drop",function(e){if(!dragId)return;e.preventDefault();var t=e.target.closest(".plate");var L=P.list.filter(function(x){return x!==dragId});
+  var i=t?L.indexOf(t.dataset.id):-1;if(i<0)L.push(dragId);else L.splice(i,0,dragId);P.list=L;dragId=null;save();render()});
+// photos
+var curSlot=null,fileIn=document.getElementById("file");
+function showSlot(k){var el=document.querySelector('[data-slot="'+k+'"]'),src=lsp(PFX+"img:"+k);el.innerHTML=src?'<img src="'+src+'" alt="">':'<span class="ph">'+(k==="logo"?"Add logo":"Add photo")+'</span>'}
+["logo","hero"].forEach(showSlot);
+document.querySelectorAll(".slot").forEach(function(s){s.addEventListener("click",function(){curSlot=s.dataset.slot;fileIn.value="";fileIn.click()});
+  s.addEventListener("dragover",function(e){e.preventDefault()});
+  s.addEventListener("drop",function(e){var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(f){e.preventDefault();curSlot=s.dataset.slot;readImg(f)}})});
+fileIn.addEventListener("change",function(){if(fileIn.files[0])readImg(fileIn.files[0])});
+function readImg(f){var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var m=600,s=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement("canvas");
+  c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);var url=c.toDataURL("image/png");
+  lsp(PFX+"img:"+curSlot,url);var el=document.querySelector('[data-slot="'+curSlot+'"]');el.innerHTML='<img src="'+url+'" alt="">'};img.src=r.result};r.readAsDataURL(f)}
+// columns
+var colSel=document.getElementById("cols");colSel.value=ls(PFX+"cols")||"2";plates.style.setProperty("--cols",colSel.value);
+colSel.onchange=function(){ls(PFX+"cols",colSel.value);plates.style.setProperty("--cols",colSel.value)};
+// export
+var msg=document.getElementById("msg");
+function snap(){var b=document.getElementById("board");if(document.activeElement)document.activeElement.blur();b.classList.add("exporting");
+  return html2canvas(b,{backgroundColor:"#000",scale:2}).finally(function(){b.classList.remove("exporting")})}
+document.getElementById("dl").onclick=function(){if(!window.html2canvas){msg.textContent="The image tool didn’t load. Reload the page.";return}
+  snap().then(function(c){var a=document.createElement("a");a.href=c.toDataURL("image/png");a.download="Platter-de-Czar-"+day+".png";document.body.appendChild(a);a.click();a.remove();
+  msg.textContent="Downloaded. If nothing saved (some previews block downloads), use Copy image instead."})};
+document.getElementById("copy").onclick=function(){if(!window.html2canvas){msg.textContent="The image tool didn’t load.";return}
+  snap().then(function(c){c.toBlob(function(b){try{navigator.clipboard.write([new ClipboardItem({"image/png":b})]).then(function(){msg.textContent="Image copied — paste it into a post or message."},function(){msg.textContent="Couldn’t copy here. Try Download PNG."})}catch(e){msg.textContent="Couldn’t copy here. Try Download PNG."}})})};
+document.getElementById("clear").onclick=function(){P={list:[],cats:{}};save();render()};
+function setDay(s){if(!s||s<"2026-12-01")return;day=s;ls(PFX+"day",day);load();render()}
+function go(n){var p=day.split("-");setDay(iso(new Date(+p[0],+p[1]-1,+p[2]+n)))}
+document.getElementById("prev").onclick=function(){go(-1)};document.getElementById("next").onclick=function(){go(1)};
+document.getElementById("day").onchange=function(e){setDay(e.target.value)};
+document.getElementById("q").oninput=function(e){q=e.target.value.trim().toLowerCase();render()};
+document.getElementById("cls").onchange=function(e){cls=+e.target.value;render()};
+fetch("games.json").then(function(r){return r.json()}).then(function(d){T=d.T;G=d.G;var t=iso(new Date());
+  day=ls(PFX+"day")||(t>"2026-12-01"?t:"2026-12-01");if(day<"2026-12-01")day="2026-12-01";load();render()})
+  .catch(function(){document.getElementById("pool").innerHTML='<p class="hint">Couldn’t load the schedule.</p>'});
+</script></body></html>
